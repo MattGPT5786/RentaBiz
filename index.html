@@ -37,11 +37,6 @@
   .stat .s{font-size:12px;color:var(--soft)}
   /* toolbar */
   .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:14px 0 10px}
-  .toolbar .lbl{font-size:14px;font-weight:700;color:#ffffff;margin-right:2px;text-shadow:1px 1px 1px rgba(0,0,0,.45)}
-  .fbtn{appearance:none;border:none;background:var(--face);box-shadow:var(--raised);color:#000;font-family:var(--sans);
-    font-size:14px;font-weight:400;padding:7px 14px;cursor:pointer}
-  .fbtn:active{box-shadow:var(--sunken)}
-  .fbtn.on{box-shadow:var(--sunken);font-weight:700;outline:1px dotted #000;outline-offset:-4px;background:#c9c5ba}
   .toolbar select{margin-left:auto;font-family:var(--sans);font-size:14px;color:#000;
     border:none;box-shadow:var(--sunken);padding:5px 7px;background:#ffffff}
   /* deal cards */
@@ -52,10 +47,6 @@
     display:flex;align-items:center;justify-content:center;color:var(--navy);font-size:29px;margin:4px 4px 0}
   .photo .sample{position:absolute;top:8px;left:8px;background:#ffffe1;color:#000;border:1px solid #000;font-size:11px;font-weight:700;
     letter-spacing:.05em;padding:3px 8px}
-  .chip{position:absolute;top:8px;right:8px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-    padding:3px 9px;color:#fff;border:1px solid #0a0a0a}
-  .chip.watching{background:#1f5fa8} .chip.analyzing{background:#b97d10}
-  .chip.toured{background:#6a4fb0} .chip.passed{background:#6b7a6e} .chip.offer{background:#145c2b}
   .deal .body{padding:10px 12px}
   .deal h3{margin:0;font-size:16px;font-weight:700}
   .deal .sub{color:var(--faint);font-size:13px;margin:2px 0 8px}
@@ -96,19 +87,12 @@
 <div class="wrap">
   <div class="strip">
     <div class="stat"><div class="k">Deals on board</div><div class="v" id="stCount">–</div><div class="s">Harrisburg &amp; nearby</div></div>
-    <div class="stat"><div class="k">Avg cap rate</div><div class="v" id="stCap">–</div><div class="s">Across active deals</div></div>
+    <div class="stat"><div class="k">Avg cap rate</div><div class="v" id="stCap">–</div><div class="s">Across all deals</div></div>
     <div class="stat"><div class="k">Best cash flow</div><div class="v" id="stCF">–</div><div class="s" id="stCFName">Per month</div></div>
     <div class="stat"><div class="k">Model</div><div class="v" style="font-size:19px;padding-top:3px">20% down · 7.0%</div><div class="s">30-year fixed · 5% vacancy · 5% upkeep</div></div>
   </div>
 
   <div class="toolbar">
-    <span class="lbl">Status:</span>
-    <button class="fbtn on" data-f="all">All</button>
-    <button class="fbtn" data-f="Watching">Watching</button>
-    <button class="fbtn" data-f="Analyzing">Analyzing</button>
-    <button class="fbtn" data-f="Toured">Toured</button>
-    <button class="fbtn" data-f="Offer">Offer</button>
-    <button class="fbtn" data-f="Passed">Passed</button>
     <select id="sort">
       <option value="cf">Sort: Best cash flow</option>
       <option value="cap">Sort: Best cap rate</option>
@@ -118,7 +102,7 @@
   </div>
 
   <div class="grid" id="board"></div>
-  <div class="empty" id="emptyMsg" style="display:none">No deals with that status yet.</div>
+  <div class="empty" id="emptyMsg" style="display:none">No deals on the board yet.</div>
 
   <div class="notes">
     <div class="note">
@@ -145,13 +129,13 @@
   var DEALS = [
     { sample:true, address:"1420 Derry Street", city:"Harrisburg, PA 17104", price:139900,
       beds:3, baths:1, sqft:1240, rent:1450, taxes:2900, insurance:1100,
-      status:"Watching", link:"", scenario:"Medium", source:"Medium scenario sample" },
+      link:"", scenario:"Medium", source:"Medium scenario sample" },
     { sample:true, address:"2615 N Front Street", city:"Harrisburg, PA 17110", price:310000,
       beds:4, baths:2.5, sqft:2150, rent:1950, taxes:4800, insurance:1500,
-      status:"Watching", link:"", scenario:"Low", source:"Low scenario sample" },
+      link:"", scenario:"Low", source:"Low scenario sample" },
     { sample:true, address:"1432 S 13th Street", city:"Harrisburg, PA 17104", price:89900,
       beds:3, baths:1, sqft:1080, rent:1150, taxes:1900, insurance:950,
-      status:"Analyzing", link:"", scenario:"High", source:"High scenario sample" }
+      link:"", scenario:"High", source:"High scenario sample" }
   ];
 
   function money(n, dec){ return (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US",{maximumFractionDigits:dec||0, minimumFractionDigits:dec||0}); }
@@ -162,13 +146,10 @@
     var noi = gross - gross * VACANCY - gross * MAINT - d.taxes - d.insurance;
     return { pi: pi, noi: noi, cap: noi / d.price * 100, cf: noi / 12 - pi, rtp: d.rent / d.price * 100 };
   }
-  function chipClass(s){ return s.toLowerCase(); }
-
-  var filter = "all";
   function render(){
     var board = document.getElementById("board");
     var sort = document.getElementById("sort").value;
-    var list = DEALS.filter(function(d){ return filter === "all" || d.status === filter; });
+    var list = DEALS.slice();
     list.sort(function(a, b){
       var ma = metrics(a), mb = metrics(b);
       if (sort === "cf") return mb.cf - ma.cf;
@@ -181,7 +162,7 @@
       var m = metrics(d);
       return '<div class="deal">' +
         '<div class="photo">🏠' + (d.sample ? '<span class="sample">' + (d.scenario ? d.scenario.toUpperCase() + ' SCENARIO' : 'SAMPLE') + '</span>' : '') +
-        '<span class="chip ' + chipClass(d.status) + '">' + d.status + '</span></div>' +
+        '</div>' +
         '<div class="body"><h3>' + d.address + '</h3>' +
         '<div class="sub">' + d.city + ' · ' + d.beds + ' bd · ' + d.baths + ' ba · ' + d.sqft.toLocaleString() + ' sqft</div>' +
         '<div class="price-row"><span class="price">' + money(d.price) + '</span>' +
@@ -196,8 +177,8 @@
         '<span class="src">' + d.source + '</span></div>' +
         '</div></div>';
     }).join("");
-    // summary strip (active = not Passed)
-    var active = DEALS.filter(function(d){ return d.status !== "Passed"; });
+    // summary strip
+    var active = DEALS;
     document.getElementById("stCount").textContent = DEALS.length;
     if (active.length){
       var avgCap = active.reduce(function(a, d){ return a + metrics(d).cap; }, 0) / active.length;
@@ -207,12 +188,6 @@
       document.getElementById("stCFName").textContent = best.address;
     }
   }
-  document.querySelectorAll(".fbtn").forEach(function(b){
-    b.addEventListener("click", function(){
-      document.querySelectorAll(".fbtn").forEach(function(x){ x.classList.remove("on"); });
-      b.classList.add("on"); filter = b.getAttribute("data-f"); render();
-    });
-  });
   document.getElementById("sort").addEventListener("change", render);
   render();
 </script>

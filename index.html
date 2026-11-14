@@ -35,8 +35,17 @@
   .stat .k{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#000}
   .stat .v{font-size:20px;font-weight:700;margin-top:3px}
   .stat .s{font-size:12px;color:var(--soft)}
+  /* market switcher */
+  .markets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:10px 0 0}
+  .mlbl{font-size:14px;font-weight:700;color:#ffffff;text-shadow:1px 1px 1px rgba(0,0,0,.45);margin-right:2px}
+  .mbtn{appearance:none;border:none;background:var(--face);box-shadow:var(--raised);color:#000;font-family:var(--sans);
+    font-size:14px;padding:7px 14px;cursor:pointer}
+  .mbtn:active{box-shadow:var(--sunken)}
+  .mbtn.on{box-shadow:var(--sunken);font-weight:700;outline:1px dotted #000;outline-offset:-4px;background:#c9c5ba}
+  .zipbox{display:inline-flex;gap:6px;margin-left:auto;align-items:center}
+  .zipbox input{font-family:var(--sans);font-size:14px;width:100px;padding:6px 8px;border:none;box-shadow:var(--sunken);background:#ffffff;color:#000}
   /* toolbar */
-  .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:14px 0 10px}
+  .toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:10px 0 8px}
   .toolbar select{margin-left:auto;font-family:var(--sans);font-size:14px;color:#000;
     border:none;box-shadow:var(--sunken);padding:5px 7px;background:#ffffff}
   /* deal cards */
@@ -80,16 +89,25 @@
 <header><div class="wrap">
   <div class="winbtns" aria-hidden="true"><span>–</span><span>▢</span><span>✕</span></div>
   <div class="logo">Renta<span class="z">Biz</span></div>
-  <p class="tagline">Residential rental deal board — Harrisburg, PA</p>
+  <p class="tagline">Residential rental deal board — <span id="mktLabel">Harrisburg, PA</span></p>
   <span class="crew">A Matt &amp; Benji project</span>
 </div></header>
 
 <div class="wrap">
   <div class="strip">
-    <div class="stat"><div class="k">Deals on board</div><div class="v" id="stCount">–</div><div class="s">Harrisburg &amp; nearby</div></div>
+    <div class="stat"><div class="k">Deals on board</div><div class="v" id="stCount">–</div><div class="s" id="stCountSub">Harrisburg, PA</div></div>
     <div class="stat"><div class="k">Avg cap rate</div><div class="v" id="stCap">–</div><div class="s">Across all deals</div></div>
     <div class="stat"><div class="k">Best cash flow</div><div class="v" id="stCF">–</div><div class="s" id="stCFName">Per month</div></div>
     <div class="stat"><div class="k">Model</div><div class="v" style="font-size:19px;padding-top:3px">20% down · 7.0%</div><div class="s">30-year fixed · 5% vacancy · 5% upkeep</div></div>
+  </div>
+
+  <div class="markets">
+    <span class="mlbl">Market:</span>
+    <button class="mbtn" data-m="all">All markets</button>
+    <button class="mbtn on" data-m="Harrisburg, PA">Harrisburg, PA</button>
+    <button class="mbtn" data-m="Cherry Hill, NJ">Cherry Hill, NJ</button>
+    <button class="mbtn" data-m="Delray Beach, FL">Delray Beach, FL</button>
+    <span class="zipbox"><input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="ZIP code" aria-label="ZIP code"><button class="mbtn" id="zipGo">Go</button></span>
   </div>
 
   <div class="toolbar">
@@ -127,13 +145,13 @@
 
   // ---- Deals: add new properties to this list ----
   var DEALS = [
-    { sample:true, address:"1420 Derry Street", city:"Harrisburg, PA 17104", price:139900,
+    { sample:true, market:"Harrisburg, PA", zip:"17104", address:"1420 Derry Street", city:"Harrisburg, PA 17104", price:139900,
       beds:3, baths:1, sqft:1240, rent:1450, taxes:2900, insurance:1100,
       link:"", scenario:"Medium", source:"Medium scenario sample" },
-    { sample:true, address:"2615 N Front Street", city:"Harrisburg, PA 17110", price:310000,
+    { sample:true, market:"Harrisburg, PA", zip:"17110", address:"2615 N Front Street", city:"Harrisburg, PA 17110", price:310000,
       beds:4, baths:2.5, sqft:2150, rent:1950, taxes:4800, insurance:1500,
       link:"", scenario:"Low", source:"Low scenario sample" },
-    { sample:true, address:"1432 S 13th Street", city:"Harrisburg, PA 17104", price:89900,
+    { sample:true, market:"Harrisburg, PA", zip:"17104", address:"1432 S 13th Street", city:"Harrisburg, PA 17104", price:89900,
       beds:3, baths:1, sqft:1080, rent:1150, taxes:1900, insurance:950,
       link:"", scenario:"High", source:"High scenario sample" }
   ];
@@ -149,7 +167,11 @@
   function render(){
     var board = document.getElementById("board");
     var sort = document.getElementById("sort").value;
-    var list = DEALS.slice();
+    var list = DEALS.filter(function(d){
+      if (marketFilter === "all") return true;
+      if (typeof marketFilter === "object") return d.zip === marketFilter.zip;
+      return d.market === marketFilter;
+    });
     list.sort(function(a, b){
       var ma = metrics(a), mb = metrics(b);
       if (sort === "cf") return mb.cf - ma.cf;
@@ -157,7 +179,9 @@
       if (sort === "priceAsc") return a.price - b.price;
       return b.price - a.price;
     });
-    document.getElementById("emptyMsg").style.display = list.length ? "none" : "";
+    var em = document.getElementById("emptyMsg");
+    em.style.display = list.length ? "none" : "";
+    if (!list.length) em.textContent = "No listings for " + document.getElementById("mktLabel").textContent + " yet — send me one and it lands on the board.";
     board.innerHTML = list.map(function(d){
       var m = metrics(d);
       return '<div class="deal">' +
@@ -178,17 +202,40 @@
         '</div></div>';
     }).join("");
     // summary strip
-    var active = DEALS;
-    document.getElementById("stCount").textContent = DEALS.length;
+    var active = list;
+    document.getElementById("stCount").textContent = list.length;
+    document.getElementById("stCountSub").textContent = document.getElementById("mktLabel").textContent;
     if (active.length){
       var avgCap = active.reduce(function(a, d){ return a + metrics(d).cap; }, 0) / active.length;
       document.getElementById("stCap").textContent = avgCap.toFixed(1) + "%";
       var best = active.slice().sort(function(a, b){ return metrics(b).cf - metrics(a).cf; })[0];
       document.getElementById("stCF").textContent = money(metrics(best).cf) + "/mo";
       document.getElementById("stCFName").textContent = best.address;
+    } else {
+      document.getElementById("stCap").textContent = "–";
+      document.getElementById("stCF").textContent = "–";
+      document.getElementById("stCFName").textContent = "No listings yet";
     }
   }
   document.getElementById("sort").addEventListener("change", render);
+
+  var marketFilter = "Harrisburg, PA";
+  function setMarket(m){
+    marketFilter = m;
+    document.querySelectorAll(".mbtn[data-m]").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-m") === m); });
+    document.getElementById("mktLabel").textContent = (m === "all") ? "All markets" : (typeof m === "object" ? "ZIP " + m.zip : m);
+    render();
+  }
+  document.querySelectorAll(".mbtn[data-m]").forEach(function(b){
+    b.addEventListener("click", function(){ document.getElementById("zipInput").value = ""; setMarket(b.getAttribute("data-m")); });
+  });
+  function zipGo(){
+    var v = document.getElementById("zipInput").value.trim();
+    if (!/^\d{5}$/.test(v)) return;
+    setMarket({zip: v});
+  }
+  document.getElementById("zipGo").addEventListener("click", zipGo);
+  document.getElementById("zipInput").addEventListener("keydown", function(e){ if (e.key === "Enter") zipGo(); });
   render();
 </script>
 </body>

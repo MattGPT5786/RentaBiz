@@ -120,6 +120,7 @@
         <li><b>Loan:</b> 20% down, 30-year fixed at 7.0% — principal &amp; interest shown per month.</li>
         <li><b>NOI:</b> annual rent minus 5% vacancy, 5% maintenance, property taxes and insurance.</li>
         <li><b>Cap rate:</b> NOI ÷ price. <b>Cash flow:</b> NOI ÷ 12 minus the mortgage payment.</li>
+        <li><b>Calculating cap rate, step by step:</b> (1) A year of rent — monthly rent × 12. (2) Subtract the year's costs — 5% vacancy, 5% maintenance, taxes and insurance — what's left is the NOI. (3) Divide the NOI by the price. <i>Example, 1420 Derry St below: $17,400 rent − $870 vacancy − $870 maintenance − $2,900 taxes − $1,100 insurance = $11,660 NOI → $11,660 ÷ $139,900 = <b>8.3%</b>.</i></li>
         <li><b>Rent-to-price:</b> monthly rent ÷ price (the "1% rule" yardstick).</li>
         <li>Estimates only — verify taxes, insurance and rent before any offer.</li>
       </ul>
@@ -131,7 +132,7 @@
         <p><b>Cap rate, in plain English:</b> the year's profit before the mortgage, divided by the price — how hard each dollar of price works for you.</p>
         <ul>
           <li><b>Below ~5% — low risk, low income.</b> Nicer, steadier areas. Rent money is thin; the payoff leans on the home's value going up.</li>
-          <li><b>~6–8% — the middle ground.</b> Solid rent for the price without the rough edges. Our two samples sit right here (7.7% and 8.3%).</li>
+          <li><b>~6–8% — the middle ground.</b> Solid rent for the price without the rough edges. Two of the board's samples sit right here (7.7% and 8.3%).</li>
           <li><b>~9% and up — higher risk, higher income.</b> The big number usually comes with a catch: tougher block, older house, more repairs and tenant turnover.</li>
         </ul>
         <p>Rule of thumb: a high cap rate is the market paying you extra to take on extra headaches.</p>
@@ -153,7 +154,13 @@
       status:"Watching", link:"", source:"Sample deal" },
     { sample:true, address:"2318 N 6th Street", city:"Harrisburg, PA 17110", price:189000,
       beds:4, baths:2, sqft:1680, rent:1795, taxes:3600, insurance:1350,
-      status:"Analyzing", link:"", source:"Sample deal" }
+      status:"Analyzing", link:"", source:"Sample deal" },
+    { sample:true, address:"2615 N Front Street", city:"Harrisburg, PA 17110", price:310000,
+      beds:4, baths:2.5, sqft:2150, rent:1950, taxes:4800, insurance:1500,
+      status:"Watching", link:"", source:"Sample deal — low cap rate" },
+    { sample:true, address:"1432 S 13th Street", city:"Harrisburg, PA 17104", price:89900,
+      beds:3, baths:1, sqft:1080, rent:1150, taxes:1900, insurance:950,
+      status:"Analyzing", link:"", source:"Sample deal — high cap rate" }
   ];
 
   function money(n, dec){ return (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US",{maximumFractionDigits:dec||0, minimumFractionDigits:dec||0}); }
